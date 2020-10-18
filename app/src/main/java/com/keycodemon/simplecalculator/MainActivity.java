@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     double firstNum = 0;
     char operator = '+';
+    boolean equalClicked = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,9 +30,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         init();
     }
 
-
+    /**
+     * Initial all views
+     */
     private void init(){
-
         tvTemp = findViewById(R.id.tvTemp);
         tvInputResult = findViewById(R.id.tvInputResult);
 
@@ -44,26 +46,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /**
+     * Get input number from tvInputResult
+     * @return double from tvInputResult
+     */
     private double getInputNumber(){
-        String inputText = getInput();
+        String inputText = getInput().replace("–", "-");
+        if(inputText.equals("-")){
+            return -1;
+        }
         if(inputText.contains("√")){
             int sqrtPos = inputText.indexOf("√");
 
-            double previousSqrtNum = (sqrtPos == 0) ? 1:Double.parseDouble(inputText.substring(0, sqrtPos));
+            // √3 -> previousSqrtNum = 1, -√3 -> previousSqrtNum = -1
+            // √ -> afterSqrtNum = 1
+            double previousSqrtNum = (sqrtPos == 0) ? 1:((inputText.substring(0, sqrtPos).equals("-"))? -1:Double.parseDouble(inputText.substring(0, sqrtPos)));
             double afterSqrtNum = (sqrtPos == inputText.length()-1) ? 1:Math.sqrt(Double.parseDouble(inputText.substring(sqrtPos + 1)));
             return previousSqrtNum * afterSqrtNum;
         }
         return Double.parseDouble(inputText);
     }
 
+    /**
+     * Get input String from tvInputResult
+     * @return String from tvInputResult
+     */
     private String getInput(){
         return tvInputResult.getText().toString();
     }
 
+    /**
+     * Get text from button
+     * @param view: Button clicked
+     * @return: String from button text
+     */
     private String getButtonText(View view){
         return ((Button)view).getText().toString();
     }
 
+    /**
+     * Remove last character from tvInputResult
+     */
     private void removeLastInputChar(){
         String input = getInput();
         if(input.length() == 1){
@@ -73,33 +96,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /**
+     * Add number [0-9] from button to show on tvInputResult
+     * @param number: Number on button
+     * @param inputResultText: Result to show on tvInputResult
+     */
     private void inputNumber(String number, String inputResultText){
 
-        if(!inputResultText.contains("√")){
-            int num = Integer.valueOf(number);
-            if(num == 0){
-                if(getInput().contains(".") || getInputNumber() != 0){
-                    tvInputResult.setText(inputResultText);
-                }
+        if(equalClicked){
+            if(getInputNumber()!=0){
+                tvInputResult.setText(getInput() + number);
             }else{
-                if(!getInput().contains(".") && getInputNumber() == 0){
-                    tvInputResult.setText(number);
-                }else {
-                    tvInputResult.setText(inputResultText);
-                }
+                tvInputResult.setText(number);
             }
+            equalClicked = false;
         }else{
-            int num = Integer.valueOf(number);
-            if(num == 0){
-                if(getInput().contains(".") || inputResultText.charAt(inputResultText.length()-2) != '√'){
-                    tvInputResult.setText(inputResultText);
+            if(!inputResultText.contains("√")){
+                int num = Integer.valueOf(number);
+                if(num == 0){
+                    if(getInput().contains(".") || getInputNumber() != 0){
+                        tvInputResult.setText(inputResultText);
+                    }
+                }else{
+                    if(!getInput().contains(".") && getInputNumber() == 0){
+                        tvInputResult.setText(number);
+                    }else {
+                        tvInputResult.setText(inputResultText);
+                    }
                 }
             }else{
-                tvInputResult.setText(inputResultText);
+                int num = Integer.valueOf(number);
+                if(num == 0){
+                    if(getInput().contains(".") || inputResultText.charAt(inputResultText.length()-2) != '√'){
+                        tvInputResult.setText(inputResultText);
+                    }
+                }else{
+                    tvInputResult.setText(inputResultText);
+                }
             }
         }
     }
 
+    /**
+     * Click event for button with operator (+, –, ×, ÷)
+     * @param buttonText: String from button text
+     */
     private void inputOperator(String buttonText){
         if (getInputNumber() != 0) {
             if (firstNum != 0) {
@@ -114,16 +155,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             operator = buttonText.charAt(0);
             tvInputResult.setText("0");
             if(firstNum == 0){tvTemp.setText("");}
+        } else if (buttonText.equals("–")) {
+            tvInputResult.setText(buttonText);
         } else if (firstNum != 0) {
             operator = buttonText.charAt(0);
-            if (Math.round((firstNum - (long) (firstNum + 0.0000000001))*10000000000.0)/10000000000.0 == 0) {
-                tvTemp.setText((long) (firstNum + 0.0000000001) + buttonText);
-            } else {
-                tvTemp.setText(firstNum + buttonText);
-            }
+            outputFix(tvTemp, firstNum, buttonText);
         }
     }
 
+    /**
+     * Click event for button (., √, %)
+     * @param buttonText: String from button text
+     * @param inputText: String from tvInputResult
+     * @param inputResultText: Result to show on tvInputResult
+     */
     private void inputSymbol(String buttonText, String inputText, String inputResultText){
         switch (buttonText){
             case ".":
@@ -142,15 +187,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case "%":
                 double numerPercent = getInputNumber()/100;
-                if(Math.round((numerPercent - (long) (numerPercent + 0.0000000001)) * 10000000000.0)/10000000000.0 == 0){
-                    tvInputResult.setText(String.valueOf((long) (numerPercent + 0.0000000001)));
-                }else{
-                    tvInputResult.setText(String.valueOf(numerPercent));
-                }
+                outputFix(tvInputResult, numerPercent, "");
                 break;
         }
     }
 
+    /**
+     * Calculate operation
+     */
     private void calculate(){
         double result = 0;
         switch (operator){
@@ -171,13 +215,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         tvTemp.setText("");
-        if(Math.round((result - (long) (result + 0.0000000001)) * 10000000000.0)/10000000000.0 == 0){
-            tvInputResult.setText(String.valueOf((long) (result + 0.0000000001)));
-        }else{
-            tvInputResult.setText(String.valueOf(result));
-        }
+        outputFix(tvInputResult, result, "");
         firstNum = 0;
         operator = '+';
+    }
+
+    /**
+     * Fix output = 0.9999999999999 -> 1 or -1.0 -> -1
+     * @param tv: TextView to show (tvInputResult, tvTemp)
+     * @param number: Number to show
+     * @param buttonText: Add operator (+, –, ×, ÷) after number for tvTemp, empty for tvInputResult
+     */
+    private void outputFix(TextView tv, double number, String buttonText){
+        if(number >= 0){
+            if(Math.round((number - (long) (number + 0.000000000001)) * 10000000000.0)/10000000000.0 == 0){
+                tv.setText(String.valueOf((long) (number + 0.0000000001)) + buttonText);
+            }else{
+                tv.setText(String.valueOf(number));
+            }
+        }else{
+            if(Math.round((number - (long) (number - 0.000000000001)) * 10000000000.0)/10000000000.0 == 0){
+                tv.setText(String.valueOf((long) (number - 0.0000000001)) + buttonText);
+            }else{
+                tv.setText(String.valueOf(number));
+            }
+        }
+
     }
 
     @Override
@@ -202,6 +265,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btnResult:
                 calculate();
+                equalClicked = true;
                 break;
         }
     }
