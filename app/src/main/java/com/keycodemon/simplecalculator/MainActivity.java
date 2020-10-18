@@ -45,7 +45,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private double getInputNumber(){
-        return Double.parseDouble(getInput());
+        String inputText = getInput();
+        if(inputText.contains("√")){
+            int sqrtPos = inputText.indexOf("√");
+
+            double previousSqrtNum = (sqrtPos == 0) ? 1:Double.parseDouble(inputText.substring(0, sqrtPos));
+            double afterSqrtNum = (sqrtPos == inputText.length()-1) ? 1:Math.sqrt(Double.parseDouble(inputText.substring(sqrtPos + 1)));
+            return previousSqrtNum * afterSqrtNum;
+        }
+        return Double.parseDouble(inputText);
     }
 
     private String getInput(){
@@ -67,36 +75,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void inputNumber(String number, String inputResultText){
 
-        int num = Integer.valueOf(number);
-        if(num == 0){
-            if(getInput().contains(".") || getInputNumber() != 0){
-                tvInputResult.setText(inputResultText);
+        if(!inputResultText.contains("√")){
+            int num = Integer.valueOf(number);
+            if(num == 0){
+                if(getInput().contains(".") || getInputNumber() != 0){
+                    tvInputResult.setText(inputResultText);
+                }
+            }else{
+                if(!getInput().contains(".") && getInputNumber() == 0){
+                    tvInputResult.setText(number);
+                }else {
+                    tvInputResult.setText(inputResultText);
+                }
             }
         }else{
-            if(!getInput().contains(".") && getInputNumber() == 0){
-                tvInputResult.setText(number);
-            }else {
+            int num = Integer.valueOf(number);
+            if(num == 0){
+                if(getInput().contains(".") || inputResultText.charAt(inputResultText.length()-2) != '√'){
+                    tvInputResult.setText(inputResultText);
+                }
+            }else{
                 tvInputResult.setText(inputResultText);
             }
         }
     }
 
     private void inputOperator(String buttonText){
-        if(getInputNumber()!=0){
-            if(firstNum!=0){
+        if (getInputNumber() != 0) {
+            if (firstNum != 0) {
                 calculate();
             }
-            tvTemp.setText(getInput() + buttonText); // get new input
+            if(getInput().equals("√")){
+                tvTemp.setText("√1" + buttonText);
+            }else{
+                tvTemp.setText(getInput() + buttonText); // get new input
+            }
             firstNum = getInputNumber();
             operator = buttonText.charAt(0);
             tvInputResult.setText("0");
-        }else if(firstNum != 0){
+            if(firstNum == 0){tvTemp.setText("");}
+        } else if (firstNum != 0) {
             operator = buttonText.charAt(0);
-            if(firstNum - (long) firstNum == 0){
-                tvTemp.setText((long) firstNum + buttonText);
-            }else{
+            if (Math.round((firstNum - (long) (firstNum + 0.0000000001))*10000000000.0)/10000000000.0 == 0) {
+                tvTemp.setText((long) (firstNum + 0.0000000001) + buttonText);
+            } else {
                 tvTemp.setText(firstNum + buttonText);
             }
+        }
+    }
+
+    private void inputSymbol(String buttonText, String inputText, String inputResultText){
+        switch (buttonText){
+            case ".":
+                if(!getInput().contains(".")){
+                    tvInputResult.setText(inputResultText);
+                }
+                break;
+            case "√":
+                if(!inputText.contains(buttonText)){
+                    if(getInputNumber() == 0){
+                        tvInputResult.setText(buttonText);
+                    }else{
+                        tvInputResult.setText(inputResultText);
+                    }
+                }
+                break;
+            case "%":
+                double numerPercent = getInputNumber()/100;
+                if(Math.round((numerPercent - (long) (numerPercent + 0.0000000001)) * 10000000000.0)/10000000000.0 == 0){
+                    tvInputResult.setText(String.valueOf((long) (numerPercent + 0.0000000001)));
+                }else{
+                    tvInputResult.setText(String.valueOf(numerPercent));
+                }
+                break;
         }
     }
 
@@ -120,8 +171,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         tvTemp.setText("");
-        if(result - (long) result == 0){
-            tvInputResult.setText(String.valueOf((long)result));
+        if(Math.round((result - (long) (result + 0.0000000001)) * 10000000000.0)/10000000000.0 == 0){
+            tvInputResult.setText(String.valueOf((long) (result + 0.0000000001)));
         }else{
             tvInputResult.setText(String.valueOf(result));
         }
@@ -136,43 +187,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String inputResultText = inputText + buttonText;
 
         switch (view.getId()){
-            case R.id.btn0:
-            case R.id.btn1:
-            case R.id.btn2:
-            case R.id.btn3:
-            case R.id.btn4:
-            case R.id.btn5:
-            case R.id.btn6:
-            case R.id.btn7:
-            case R.id.btn8:
-            case R.id.btn9:
+            case R.id.btn0: case R.id.btn1: case R.id.btn2: case R.id.btn3: case R.id.btn4:
+            case R.id.btn5: case R.id.btn6: case R.id.btn7: case R.id.btn8: case R.id.btn9:
                 inputNumber(buttonText, inputResultText);
                 break;
-            case R.id.btnDot:
-                if(!getInput().contains(".")){
-                    tvInputResult.setText(inputResultText);
-                }
-                break;
-            case R.id.btnAdd:
-            case R.id.btnSub:
-            case R.id.btnMul:
-            case R.id.btnDiv:
+            case R.id.btnAdd: case R.id.btnSub: case R.id.btnMul: case R.id.btnDiv:
                 inputOperator(buttonText);
+                break;
+            case R.id.btnDot: case R.id.btnSqrt: case R.id.btnPercent:
+                inputSymbol(buttonText, inputText, inputResultText);
                 break;
             case R.id.btnClear:
                 removeLastInputChar();
-                break;
-            case R.id.btnSqrt:
-                if(!inputText.contains(buttonText)){
-                    if(getInputNumber() == 0){
-                        tvInputResult.setText(buttonText);
-                    }else{
-                        tvInputResult.setText(inputResultText);
-                    }
-                }
-                break;
-            case R.id.btnPercent:
-
                 break;
             case R.id.btnResult:
                 calculate();

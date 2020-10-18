@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Simple Calculator</string>
+    <string name="app_name">Máy tính cơ bản</string>
     <string name="temp_input" />
     <string name="input_result">0</string>
 </resources>
