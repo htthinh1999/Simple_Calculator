@@ -12,7 +12,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     TextView tvTemp, tvInputResult;
     int[] buttonIDs = new int[]{R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9,
-                                    R.id.btnClear, R.id.btnSqrt, R.id.btnPercent, R.id.btnAdd, R.id.btnSub, R.id.btnMul, R.id.btnDiv, R.id.btnDot, R.id.btnResult};
+                                    R.id.btnClear, R.id.btnSqrt, R.id.btnPercent, R.id.btnAdd, R.id.btnSub, R.id.btnMul, R.id.btnDiv, R.id.btnOpposite, R.id.btnDot, R.id.btnResult};
 
     double firstNum = 0;
     char operator = '+';
@@ -52,9 +52,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private double getInputNumber(){
         String inputText = getInput().replace("–", "-");
-        if(inputText.equals("-")){
-            return -1;
-        }
         if(inputText.contains("√")){
             int sqrtPos = inputText.indexOf("√");
 
@@ -104,11 +101,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void inputNumber(String number, String inputResultText){
 
         if(equalClicked){
-            if(getInputNumber()!=0){
-                tvInputResult.setText(getInput() + number);
-            }else{
-                tvInputResult.setText(number);
-            }
+            tvInputResult.setText(number);
             equalClicked = false;
         }else{
             if(!inputResultText.contains("√")){
@@ -155,8 +148,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             operator = buttonText.charAt(0);
             tvInputResult.setText("0");
             if(firstNum == 0){tvTemp.setText("");}
-        } else if (buttonText.equals("–")) {
-            tvInputResult.setText(buttonText);
         } else if (firstNum != 0) {
             operator = buttonText.charAt(0);
             outputFix(tvTemp, firstNum, buttonText);
@@ -164,13 +155,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Click event for button (., √, %)
+     * Click event for button (+⁄–, ., √, %)
      * @param buttonText: String from button text
      * @param inputText: String from tvInputResult
      * @param inputResultText: Result to show on tvInputResult
      */
     private void inputSymbol(String buttonText, String inputText, String inputResultText){
         switch (buttonText){
+            case "+⁄–":
+                if(getInputNumber()!=0){
+                    outputFix(tvInputResult, -getInputNumber(), "");
+                }
+                break;
             case ".":
                 if(!getInput().contains(".")){
                     tvInputResult.setText(inputResultText);
@@ -208,7 +204,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 result = firstNum * getInputNumber();
                 break;
             case '÷':
-                result = firstNum / getInputNumber();
+                if(getInputNumber() != 0){
+                    result = firstNum / getInputNumber();
+                }else{
+                    Toast.makeText(this, "Bạn không thể chia cho 0!", Toast.LENGTH_LONG).show();
+                }
                 break;
             default:
                 break;
@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * Fix output = 0.9999999999999 -> 1 or -1.0 -> -1
      * @param tv: TextView to show (tvInputResult, tvTemp)
      * @param number: Number to show
-     * @param buttonText: Add operator (+, –, ×, ÷) after number for tvTemp, empty for tvInputResult
+     * @param buttonText: Add operator (+, –, ×, ÷) after number for tvTemp, empty ("") for tvInputResult
      */
     private void outputFix(TextView tv, double number, String buttonText){
         if(number >= 0){
@@ -257,11 +257,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btnAdd: case R.id.btnSub: case R.id.btnMul: case R.id.btnDiv:
                 inputOperator(buttonText);
                 break;
-            case R.id.btnDot: case R.id.btnSqrt: case R.id.btnPercent:
-                inputSymbol(buttonText, inputText, inputResultText);
-                break;
             case R.id.btnClear:
                 removeLastInputChar();
+                break;
+            case R.id.btnOpposite: case R.id.btnDot: case R.id.btnSqrt: case R.id.btnPercent:
+                inputSymbol(buttonText, inputText, inputResultText);
                 break;
             case R.id.btnResult:
                 calculate();

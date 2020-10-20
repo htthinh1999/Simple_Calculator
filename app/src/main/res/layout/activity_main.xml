@@ -239,10 +239,20 @@
         android:weightSum="4">
 
         <Button
-            android:id="@+id/btn0"
-            android:layout_width="match_parent"
+            android:id="@+id/btnOpposite"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1.5"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:text="+⁄–"/>
+
+        <Button
+            android:id="@+id/btn0"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="?android:attr/selectableItemBackground"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -250,16 +260,16 @@
 
         <Button
             android:id="@+id/btnDot"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1.5"
+            android:layout_weight="1"
             android:background="?android:attr/selectableItemBackground"
             android:textSize="20sp"
             android:text="."/>
 
         <Button
             android:id="@+id/btnResult"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?android:attr/selectableItemBackground"
